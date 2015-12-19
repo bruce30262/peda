@@ -6128,6 +6128,7 @@ Alias("stack", "peda telescope $sp")
 Alias("viewmem", "peda telescope")
 Alias("reg", "peda xinfo register")
 Alias("base", "peda getbase")
+Alias("smb", "peda elfsymbol")
 
 # misc gdb settings
 peda.execute("set confirm off")

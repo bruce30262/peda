@@ -2287,7 +2287,7 @@ class PEDA(object):
             fd.seek(start, 0)
             mem = fd.read(end-start)
             fd.close()
-        dynstrings = mem.split("\x00")
+        dynstrings = mem.decode().split("\x00")
 
         if pattern:
             dynstrings = [s for s in dynstrings if re.search(pattern, s)]

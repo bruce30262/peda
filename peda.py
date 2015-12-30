@@ -4407,6 +4407,29 @@ class PEDACmd(object):
     #################################
     #   Memory Operation Commands   #
     #################################
+    
+    # get code base, libc base & heap base
+    def getbase(self, *arg):
+        filename = peda.getfile()
+        targets = {
+                    "$code":"binary", 
+                    "$libc":"libc", 
+                    "$heap":"heap"
+                  }
+
+        for var, segment in targets.items():
+            maps = peda.get_vmmap(segment)
+            if maps is not None and len(maps) > 0:
+                if segment != "binary" and maps[0][3] == filename: # not the real segment maps
+                    warning_msg("not found or cannot access: %s" % segment)
+                else:
+                    base_addr = hex(maps[0][0])
+                    cmd = "set %s=%s" % (var, base_addr)
+                    peda.execute(cmd)
+                    msg("setting %s = %s" % (var, base_addr))
+            else:
+                warning_msg("not found or cannot access: %s" % segment)
+
     # get_vmmap()
     def vmmap(self, *arg):
         """
@@ -6107,6 +6130,8 @@ Alias("jtrace", "peda traceinst j")
 Alias("stack", "peda telescope $sp")
 Alias("viewmem", "peda telescope")
 Alias("reg", "peda xinfo register")
+Alias("base", "peda getbase")
+Alias("smb", "peda elfsymbol")
 
 # misc gdb settings
 peda.execute("set confirm off")

@@ -4410,6 +4410,13 @@ class PEDACmd(object):
     
     # get code base, libc base & heap base
     def getbase(self, *arg):
+        """
+        Get text, libc & heap's base address
+        Usage:
+            base
+    
+        Once it's finished, it will set base addresses to variables "$code", "$libc" and "$heap" automatically
+        """
         filename = peda.getfile()
         targets = {
                     "$code":"binary", 
@@ -4429,6 +4436,148 @@ class PEDACmd(object):
                     msg("setting %s = %s" % (var, base_addr))
             else:
                 warning_msg("not found or cannot access: %s" % segment)
+    
+    # get tls address for i386 binary
+    def tls_i386(self, *arg):
+        pattern = r"Non-debugging symbols:\n(0x[a-f0-9]{8})  __kernel_vsyscall"
+        res = peda.execute_redirect("info functions __kernel_vsyscall") # get sysinfo address
+        match = re.search(pattern, res)
+        if not match:
+            message = "Unable to find the location of '__kernel_vsyscall'\n"
+            message += "For i386 arch binary, we use __kernel_vsyscall to locate the TLS section\n"
+            message += "Please make sure the vdso image has been mapped into the memory."
+            warning_msg(message)
+            return None
+        else:
+            sysinfo_addr = match.group(1)
+            res = peda.searchmem_by_range("all", sysinfo_addr)
+            if not res:
+                warning_msg("Failed to find the reference of sysinfo_addr ( %s )" % sysinfo_addr)
+                return None
+            for data in res:
+                addr = data[0]
+                head = addr - 0x10
+                res = peda.execute_redirect("x/x %s" % hex(head))
+                if ">:" in res:
+                    check = int(res.split(">:")[1], 16)
+                else:
+                    check = int(res.split(":")[1], 16)
+                if head == check:
+                    return head
+
+    # get tls address for x86-64 binary
+    def tls_x86_64(self, *arg):
+        peda.execute_redirect("call arch_prctl(0x1003,$rsp-8)") # ARCH_GET_FS_BASE
+        data = peda.execute_redirect("x/x $rsp-8")
+        return int(data.split(":")[1].strip(),16)
+    
+    # get tls address ( not .tls section base, but the tcbhead_t structure's head )
+    def gettls(self, *arg):
+        """
+        Get tls address ( not .tls section base, but the tcbhead_t structure's head address )
+        Usage:
+            MYNAME
+    
+        Please make sure the TLS section is initialized before using this command
+        """
+        arch, bits = peda.getarch()
+        
+        if "x86-64" in arch:
+            tls_addr = self.tls_x86_64()
+        else:
+            tls_addr = self.tls_i386()
+        
+        if not tls_addr:
+            msg("Failed to get the TLS section address.")
+            return None
+        else:
+            peda.execute("set $tls=%s" % hex(tls_addr))
+            msg("setting $tls = %s" % hex(tls_addr))
+            return tls_addr
+    
+    # get stack canary
+    def getcanary(self, *arg):
+        """
+        Get stack canary value
+        Usage:
+            MYNAME
+    
+        Please make sure the TLS section is initialized before using this command
+        """
+        arch, bits = peda.getarch()
+        tls_check = peda.execute_redirect("p $tls")
+
+        if "void" in tls_check:
+            tls_addr = self.gettls()
+        else:
+            tls_addr = int(tls_check.split("=")[1], 16)
+
+        if tls_addr == None:
+            warning_msg("Failed to get the stack canary value ( no TLS section address ).")
+            return None
+        
+        if "x86-64" in arch:
+            canary = int(peda.execute_redirect("x/x %s" % hex(tls_addr + 0x28)).split(":")[1], 16)
+        else:
+            canary = int(peda.execute_redirect("x/x %s" % hex(tls_addr + 0x14)).split(":")[1], 16)
+        
+        peda.execute("set $canary=%s" % hex(canary))
+        msg("setting $canary = %s" % hex(canary))
+        return canary
+        
+    # show the info of the tls section, including tls address, stack canary, stack address
+    def tls_info(self, *arg):
+        """
+        Show the TLS section info, including TLS address, stack canary, stack address...
+        Usage:
+            MYNAME
+    
+        Please make sure the TLS section is initialized before using this command
+        """
+        arch, bits = peda.getarch()
+            
+        # checking tls address
+        tls_check = peda.execute_redirect("p $tls")
+        if "void" in tls_check:
+            tls_addr = self.gettls()
+        else:
+            tls_addr = int(tls_check.split("=")[1], 16)
+        if not tls_addr:       
+            warning_msg("Failed to show TLS info ( no TLS address )")
+            return
+
+        # checking stack canary
+        canary_check = peda.execute_redirect("p $canary")
+        if "void" in canary_check:
+            canary = self.getcanary()
+        else:
+            canary = int(canary_check.split("=")[1], 16)
+        if not canary:
+            warning_msg("Failed to show TLS info ( no canary )")
+            return
+        
+        stack_range = peda.get_vmmap("stack")
+        if not stack_range:
+            warning_msg("Failed to show TLS info ( no stack memory )")
+            return
+        stack_start, stack_end = stack_range[0][0], stack_range[0][1]
+
+        # finding possible stack address in the .tls section
+        tls_off, tls_stack, found_stack = 0, 0, False
+        for addr in range(tls_addr, tls_addr + 0x1000, bits//8):
+            content = int(peda.execute_redirect("x/x %s" % hex(addr)).split(":")[1], 16)
+            if content >= stack_start and content <= stack_end:
+                tls_off, tls_stack = addr, content
+                found_stack = True
+                break
+        
+        # show all the info of the .tls section 
+        num, offset = (bits << 1) + 0x10, bits << 2
+        peda.execute("x/%sx %s" % ( str(num), hex(tls_addr - offset) ) )
+        msg("tls address: %s" % hex(tls_addr))
+        msg("stack canary: %s" % hex(canary))
+        if found_stack:
+            msg( "Found a stack address %s at %s" %( hex(tls_stack), hex(tls_off) ) )
 
     # get_vmmap()
     def vmmap(self, *arg):
@@ -6132,6 +6281,9 @@ Alias("viewmem", "peda telescope")
 Alias("reg", "peda xinfo register")
 Alias("base", "peda getbase")
 Alias("smb", "peda elfsymbol")
+Alias("tls", "peda gettls")
+Alias("canary", "peda getcanary")
+Alias("info tls", "peda tls_info")
 
 # misc gdb settings
 peda.execute("set confirm off")

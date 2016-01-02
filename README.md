@@ -60,7 +60,7 @@ gdb-peda$
 
 Bug fixed
 ==========
-I fixed some bug which exist in the original version of [peda](https://github.com/zachriggle/peda)  
+I fixed some bug which exist in zachriggle's version of [peda](https://github.com/zachriggle/peda)  
 * `elfsymbol`: Now able to list an ELF's symbols under Ubuntu Linux 14.04.1, Python3 + GDB 7.7.1  
 ```
 gdb-peda$ elfsymbol

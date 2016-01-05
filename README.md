@@ -60,7 +60,8 @@ gdb-peda$
 Bug fixed
 ==========
 I fixed some bug which exist in zachriggle's version of [peda](https://github.com/zachriggle/peda)  
-* `elfsymbol`: Now able to list an ELF's symbols under Ubuntu Linux 14.04.1, Python3 + GDB 7.7.1  
+All of them work fine under Ubuntu Linux 14.04.1, Python3 + GDB 7.7.1
+* `elfsymbol`: Now able to list an ELF's function symbols
 ```
 gdb-peda$ elfsymbol
 Found 23 symbols
@@ -124,6 +125,29 @@ Legend: stack, code, data, heap, rodata, value
 gdb-peda$
 ```
 * `start`: Now able to set breakpoint at specific entry point while running a **PIE** binary  
+* `assemble`: Now able to assemble x86 & x64 assembly  
+```
+gdb-peda$ ass -b64
+Instructions will be written to stdout
+Type instructions (NASM syntax), one or more per line separated by ";"
+End with a line saying just "end"
+iasm|0xdeadbeef> mov rax, 0x12345678987
+hexify: "\x48\xb8\x87\x89\x67\x45\x23\x01\x00\x00"
+iasm|0xdeadbef9> call rax
+hexify: "\xff\xd0"
+iasm|0xdeadbefb> pop rdi; pop rsi; ret
+hexify: "\x5f\x5e\xc3"
+iasm|0xdeadbefe> end
+Assembled instructions:
+"\x48\xb8\x87\x89\x67\x45\x23\x01"  # 0x00000000:    mov rax,0x12345678987
+"\xff\xd0"                          # 0x0000000A:    call rax
+"\x5f"                              # 0x0000000C:    pop rdi
+"\x5e"                              # 0x0000000D:    pop rsi
+"\xc3"                              # 0x0000000E:    ret
+
+hexify: "\x48\xb8\x87\x89\x67\x45\x23\x01\x00\x00\xff\xd0\x5f\x5e\xc3"
+gdb-peda$
+```
 
 
 

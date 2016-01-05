@@ -6311,6 +6311,7 @@ Alias("debug", "peda set option debug on")
 Alias("debugoff", "peda set option debug ''")
 Alias("info bp", "info breakpoint")
 Alias("offset", "peda distance")
+Alias("ctx", "peda context")
 
 # misc gdb settings
 peda.execute("set confirm off")

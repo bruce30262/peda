@@ -24,11 +24,10 @@ Start              End                Perm      Name
 0x00007fa34d4be000 0x00007fa34d4df000 rwxp      [heap]
 gdb-peda$
 ```
-* `tls`: Get the `tcbhead_t` structure's head address, which lies in the `.tls` section. Store the address to `$tls` variable  
 * `canary`: Get the stack canary value. Store the value into `$canary` variable  
-* `info tls`: Show me some information of the `.tls` section, including memory maps, `$tls`, `$canary` and the stack address lies in the `.tls` section  
+* `tls`: Show me some information of the `.tls` section, including memory maps, `$tls` ( tcbhead_t head address ) , `$canary` and the stack address lies in the `.tls` section  
 ```
-gdb-peda$ info tls
+gdb-peda$ tls
 setting $tls = 0xf7e11940
 setting $canary = 0xfc379800
 0xf7e118c0:     0x00000000      0x00000000      0x00000000      0x00000000

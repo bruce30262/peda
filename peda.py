@@ -3439,7 +3439,7 @@ class PEDACmd(object):
 
         dist = end - start
         text = "From 0x%x%s to 0x%x: " % (start, " (SP)" if start == sp else "",  end)
-        text += "%d bytes, %d dwords%s" % (dist, dist/4, " (+%d bytes)" % (dist%4) if (dist%4 != 0) else "")
+        text += "%s bytes, %d dwords%s" % (hex(dist), dist/4, " (+%d bytes)" % (dist%4) if (dist%4 != 0) else "")
         msg(text)
 
         return
@@ -6309,6 +6309,8 @@ Alias("canary", "peda getcanary")
 Alias("tls", "peda tls_info")
 Alias("debug", "peda set option debug on")
 Alias("debugoff", "peda set option debug ''")
+Alias("info bp", "info breakpoint")
+Alias("offset", "peda distance")
 
 # misc gdb settings
 peda.execute("set confirm off")

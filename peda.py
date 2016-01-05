@@ -3911,6 +3911,14 @@ class PEDACmd(object):
         peda.execute("stop")
         return
 
+    def ispie(self, *arg):
+       filename = peda.getfile()
+       res = execute_external_command("readelf -h %s" % filename)
+       if "DYN" in res:
+           return True
+       else:
+           return False
+
     def start(self, *arg):
         """
         Start debugged program and stop at most convenient entry
@@ -3918,11 +3926,16 @@ class PEDACmd(object):
             MYNAME
         """
         entries = ["main"]
-        main_addr = peda.main_entry()
-        if main_addr:
-            entries += ["*0x%x" % main_addr]
+        entries += ["_main"]
+        pie = self.ispie()
+        if not pie: # get main_entry if binary is not a PIE
+            main_addr = peda.main_entry()
+            if main_addr:
+                entries += ["*0x%x" % main_addr]
         entries += ["__libc_start_main@plt"]
+        entries += ["start"]
         entries += ["_start"]
+        entries += ["init"]
         entries += ["_init"]
 
         started = 0
@@ -3932,6 +3945,13 @@ class PEDACmd(object):
                 peda.execute("run %s" % ' '.join(arg))
                 started = 1
                 break
+
+        if started == 1 and pie: # if binary is PIE, add main_entry breakpoint here
+            main_addr = peda.main_entry()
+            main_bp =  "*0x%x" % main_addr
+            out = peda.execute_redirect("tbreak %s" % main_bp)
+            if out and "breakpoint" in out:
+                peda.execute("info breakpoint")
 
         if not started: # try ELF entry point or just "run" as the last resort
             elf_entry = peda.elfentry()

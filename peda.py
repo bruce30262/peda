@@ -4467,9 +4467,13 @@ class PEDACmd(object):
 
     # get tls address for x86-64 binary
     def tls_x86_64(self, *arg):
-        peda.execute_redirect("call arch_prctl(0x1003,$rsp-8)") # ARCH_GET_FS_BASE
-        data = peda.execute_redirect("x/x $rsp-8")
-        return int(data.split(":")[1].strip(),16)
+        try:
+            peda.execute_redirect("call arch_prctl(0x1003,$rsp-8)") # ARCH_GET_FS_BASE
+            data = peda.execute_redirect("x/x $rsp-8")
+            return int(data.split(":")[1].strip(),16)
+        except Exception as e:
+            warning_msg("Error while getting the FS register content")
+            return None
     
     # get tls address ( not .tls section base, but the tcbhead_t structure's head )
     def gettls(self, *arg):
@@ -6281,9 +6285,10 @@ Alias("viewmem", "peda telescope")
 Alias("reg", "peda xinfo register")
 Alias("base", "peda getbase")
 Alias("smb", "peda elfsymbol")
-Alias("tls", "peda gettls")
 Alias("canary", "peda getcanary")
-Alias("info tls", "peda tls_info")
+Alias("tls", "peda tls_info")
+Alias("debug", "peda set option debug on")
+Alias("debugoff", "peda set option debug ''")
 
 # misc gdb settings
 peda.execute("set confirm off")

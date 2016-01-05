@@ -333,7 +333,11 @@ def to_hexstr(str):
     """
     Convert a string to hex escape represent
     """
-    return "".join(["\\x%02x" % ord(i) for i in str])
+    if type(str) == bytes:
+        return "".join(["\\x%02x" % i for i in str])
+
+    else :
+        return "".join(["\\x%02x" % ord(i) for i in str])
 
 def to_hex(num):
     """

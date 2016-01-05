@@ -5824,7 +5824,7 @@ class PEDACmd(object):
             address = 0xdeadbeef
 
         inst_list = []
-        inst_code = ""
+        inst_code = b""
         # fetch instruction loop
         while True:
             inst = input("iasm|0x%x> " % address)
@@ -5847,7 +5847,7 @@ class PEDACmd(object):
             inst_code += bincode
             msg("hexify: \"%s\"" % to_hexstr(bincode))
 
-        text = Nasm.format_shellcode("".join([x[1] for x in inst_list]), mode)
+        text = Nasm.format_shellcode(b"".join([x[1] for x in inst_list]), mode)
         if text:
             msg("Assembled%s instructions:" % ("/Executed" if exec_mode else ""))
             msg(text)

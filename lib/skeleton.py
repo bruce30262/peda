@@ -2,10 +2,13 @@
 #       PEDA - Python Exploit Development Assistance for GDB
 #
 #       Copyright (C) 2012 Long Le Dinh <longld at vnsecurity.net>
-#       Copyright (C) 2014 Jeffrey Crowell <crowell at bu.edu>
 #
 #       License: see LICENSE file for details
 #
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 class ExploitSkeleton(object):
     """

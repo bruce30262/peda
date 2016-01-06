@@ -6,6 +6,10 @@
 #       License: see LICENSE file for details
 #
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import os
 from utils import *
 import config
@@ -30,10 +34,10 @@ class Nasm(object):
         asmcode = asmcode.strip('"').strip("'")
         asmcode = asmcode.replace(";", "\n")
         asmcode = ("BITS %d\n" % mode) + asmcode
+        asmcode = decode_string_escape(asmcode)
         asmcode = re.sub("PTR|ptr|ds:|DS:", "", asmcode)
-        asmcode = asmcode.encode()
         infd = tmpfile()
-        outfd = tmpfile()
+        outfd = tmpfile(is_binary_file=True)
         infd.write(asmcode)
         infd.flush()
         execute_external_command("%s -f bin -o %s %s" % (config.NASM, outfd.name, infd.name))
@@ -81,8 +85,7 @@ class Nasm(object):
                 m = pattern.match(line)
                 if m:
                     (addr, bytes, code) = m.groups()
-                    bytes = binascii.unhexlify(bytes)
-                    sc = '"%s"' % to_hexstr(bytes)
+                    sc = '"%s"' % to_hexstr(codecs.decode(bytes, 'hex'))
                     shellcode += [(sc, "0x"+addr, code)]
 
             maxlen = max([len(x[0]) for x in shellcode])

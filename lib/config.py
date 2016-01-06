@@ -1,11 +1,14 @@
 #
-#       PEDA - Python Exploit Development Assistance for GDB (python3 version)
+#       PEDA - Python Exploit Development Assistance for GDB
 #
 #       Copyright (C) 2012 Long Le Dinh <longld at vnsecurity.net>
-#       Copyright (C) 2014 Jeffrey Crowell <crowell at bu.edu>
 #
 #       License: see LICENSE file for details
 #
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 # change below settings to match your needs
 ## BEGIN OF SETTINGS ##
@@ -22,18 +25,18 @@ OPTIONS = {
     "pattern"   : (1, "pattern type, 0 = basic, 1 = extended, 2 = maximum"),
     "p_charset" : ("", "custom charset for pattern_create"),
     "indent"    : (4, "number of ident spaces for output python payload, e.g: 0|4|8"),
-    "ansicolor" : (True, "enable/disable colorized output, e.g: on|off"),
+    "ansicolor" : ("on", "enable/disable colorized output, e.g: on|off"),    
     "pagesize"  : (25, "number of lines to display per page, 0 = disable paging"),
     "session"   : ("peda-session-#FILENAME#.txt", "target file to save peda session"),
     "tracedepth": (0, "max depth for calls/instructions tracing, 0 means no limit"),
     "tracelog"  : ("peda-trace-#FILENAME#.txt", "target file to save tracecall output"),
     "crashlog"  : ("peda-crashdump-#FILENAME#.txt", "target file to save crash dump of fuzzing"),
     "snapshot"  : ("peda-snapshot-#FILENAME#.raw", "target file to save crash dump of fuzzing"),
-    "autosave"  : (True, "auto saving peda session, e.g: on|off"),
+    "autosave"  : ("on", "auto saving peda session, e.g: on|off"),
     "payload"   : ("peda-payload-#FILENAME#.txt", "target file to save output of payload command"),
     "context"   : ("register,code,stack", "context display setting, e.g: register, code, stack, all"),
-    "verbose"   : (False, "show detail execution of commands, e.g: on|off"),
-    "debug"     : (False, "show detail error of peda commands, e.g: on|off"),
+    "verbose"   : ("off", "show detail execution of commands, e.g: on|off"),
+    "debug"     : ("off", "show detail error of peda commands, e.g: on|off"),
     "_teefd"    : ("", "internal use only for tracelog/crashlog writing")
 }
 

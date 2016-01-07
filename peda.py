@@ -4511,10 +4511,7 @@ class PEDACmd(object):
                 addr = data[0]
                 head = addr - 0x10
                 res = peda.execute_redirect("x/x %s" % hex(head))
-                if ">:" in res:
-                    check = int(res.split(">:")[1], 16)
-                else:
-                    check = int(res.split(":")[1], 16)
+                check = int(res.split(":")[1].strip(), 16)
                 if head == check:
                     return head
 
@@ -4617,13 +4614,12 @@ class PEDACmd(object):
         if not stack_range:
             warning_msg("Failed to show TLS info ( no stack memory )")
             return
-        stack_start, stack_end = stack_range[0][0], stack_range[0][1]
 
         # finding possible stack address in the .tls section
         tls_off, tls_stack, found_stack = 0, 0, False
         for addr in range(tls_addr, tls_addr + 0x1000, bits//8):
             content = int(peda.execute_redirect("x/x %s" % hex(addr)).split(":")[1], 16)
-            if content >= stack_start and content <= stack_end:
+            if peda.is_stack(content):
                 tls_off, tls_stack = addr, content
                 found_stack = True
                 break

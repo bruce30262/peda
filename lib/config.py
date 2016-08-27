@@ -18,6 +18,7 @@ READELF      = "/usr/bin/readelf"
 OBJDUMP      = "/usr/bin/objdump"
 NASM         = "/usr/bin/nasm"
 NDISASM      = "/usr/bin/ndisasm"
+FILE         = "/usr/bin/file"
 
 # PEDA global options
 OPTIONS = {

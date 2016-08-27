@@ -31,6 +31,10 @@ class Nasm(object):
         Returns:
             - bin code (raw bytes)
         """
+        if not os.path.exists(config.NASM):
+            error_msg("%s binary not found, please install NASM for asm/rop functions" % config.NASM)
+            raise UserWarning("missing requirement")
+
         asmcode = asmcode.strip('"').strip("'")
         asmcode = asmcode.replace(";", "\n")
         asmcode = ("BITS %d\n" % mode) + asmcode

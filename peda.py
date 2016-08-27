@@ -1525,6 +1525,9 @@ class PEDA(object):
         # select maps matched specific name
         if name == "binary":
             name = self.getfile()
+        elif name == "heap":
+            name = "[heap]"
+
         if name is None or name == "all":
             name = ""
 
@@ -4496,7 +4499,7 @@ class PEDACmd(object):
         targets = {
                     "$code":"binary", 
                     "$libc":"libc", 
-                    "$heap":"heap"
+                    "$heap":"[heap]"
                   }
 
         for var, segment in targets.items():

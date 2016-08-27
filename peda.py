@@ -4337,7 +4337,8 @@ class PEDACmd(object):
 
         pc = peda.getreg("pc")
         # display register info
-        msg(separator('registers'), "blue")
+        #msg(separator('registers'), "blue")
+        msg("\033[2J\033[0;0H [%s]" % "registers".center(78, "-"), "blue")
         self.xinfo("register")
         return
 
@@ -4792,7 +4793,7 @@ class PEDACmd(object):
             data = hex2str(to_int(data), peda.intsize())
 
         data = to_binary_string(data)
-        data = data.replace("\\\\", "\\")
+        data = data.replace(b"\\\\", b"\\")
         if end_address:
             data *= (end_address-address + 1) // len(data)
         bytes_ = peda.writemem(address, data)
@@ -5110,8 +5111,6 @@ class PEDACmd(object):
             MYNAME
             MYNAME [set|clear] flagname
         """
-        return ""
-
         FLAGS = ["CF", "PF", "AF", "ZF", "SF", "TF", "IF", "DF", "OF"]
         FLAGS_TEXT = ["Carry", "Parity", "Adjust", "Zero", "Sign", "Trap",
                         "Interrupt", "Direction", "Overflow"]

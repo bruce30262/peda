@@ -57,9 +57,9 @@ else:
 REGISTERS = {
     8 : ["al", "ah", "bl", "bh", "cl", "ch", "dl", "dh"],
     16: ["ax", "bx", "cx", "dx"],
-    32: ["eax", "ebx", "ecx", "edx", "esi", "edi", "ebp", "esp", "eip"],
-    64: ["rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp", "rip",
-         "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"]
+    32: ["eax", "ebx", "ecx", "edx", "edi", "esi", "ebp", "esp", "eip"],
+    64: ["rax", "rbx", "rcx", "rdx", "rdi", "rsi", "r8", "r9", "r10", 
+         "r11", "r12", "r13", "r14", "r15", "rbp", "rsp", "rip"]
 }
 
 ###########################################################################
@@ -4337,8 +4337,8 @@ class PEDACmd(object):
 
         pc = peda.getreg("pc")
         # display register info
-        #msg(separator('registers'), "blue")
-        msg("\033[2J\033[0;0H [%s]" % "registers".center(78, "-"), "blue")
+        msg("\x1b[H\x1b[J") # clear screen
+        msg(separator('register'))
         self.xinfo("register")
         return
 
@@ -4362,7 +4362,7 @@ class PEDACmd(object):
         else:
             line = None
 
-        msg(separator('code'), "blue")
+        msg(separator('code'))
 
         if not line:
             msg("Invalid $PC address: 0x%x" % pc, "red")
@@ -4430,7 +4430,7 @@ class PEDACmd(object):
         if not self._is_running():
             return
 
-        msg(separator('stack'), 'blue')
+        msg(separator('stack'))
         sp = peda.getreg("sp")
         if peda.is_address(sp):
             self.telescope(sp, count)
@@ -4473,7 +4473,7 @@ class PEDACmd(object):
         # display stack content, forced in case SIGSEGV
         if "stack" in opt or "SIGSEGV" in status:
             self.context_stack(count)
-        msg(separator(), "blue")
+        msg(separator())
 
         colors = []
         for datatype in ('stack', 'code','data', 'heap', 'rodata','value'):

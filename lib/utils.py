@@ -147,6 +147,10 @@ def blue(text, attrib=None):
     """Wrapper for colorize(text, 'blue')"""
     return colorize(text, "blue", attrib)
 
+def cyan(text, attrib=None):
+    """Wrapper for colorize(text, 'cyan')"""
+    return colorize(text, "cyan", attrib)
+
 class message(object):
     """
     Generic pretty printer with redirection.
@@ -241,13 +245,28 @@ def trim(docstring):
     return '\n'.join(trimmed)
 
 def separator(title = ''):
+    title = title.capitalize()
+
     import struct, termios, fcntl, sys
     try:
         _height, width = struct.unpack('hh', fcntl.ioctl(sys.stdin.fileno(), termios.TIOCGWINSZ, '1234'))
     except:
         width = 80
-    w = width - 2 - len(title)
-    return '[%s%s%s]' % ('-' * (w // 2), title, '-' * ((w + 1) // 2))
+
+    skip = 3
+    fill_char = u'─'
+    margin = 1 if len(title) > 0 else 0 
+
+    before = fill_char * skip
+    before = cyan(before, "bold")
+    middle = yellow(title, "bold")
+
+    after_length = width - len(title) - skip - 2 * margin
+    after = fill_char * after_length
+    after = cyan(after, "bold")
+
+    return ''.join([before, ' ' * margin, middle, ' ' * margin, after])
+
 
 def pager(text, pagesize=None):
     """
@@ -579,19 +598,20 @@ def format_disasm_code(code, nearby=None):
             elif addr == target:
                 style = "bold"
                 color = "green"
-
-            code = colorize(inst, color, style)
+                prefix = colorize(prefix, color, style)
+                oaddr = colorize(oaddr, color, style)
 
             if name is not None:
-                name = colorize(" <%s>" % name, color, "dark")
+                name = colorize(" <%s>" % name, color, style)
             else:
                 name = ""
+
+            code = colorize(inst, color, style)
 
             if comment is not None:
                 comment = colorize(";" + comment, color, "dark")
             else:
                 comment = ""
-
 
             line = "%s%s%s:\t%s%s" % (prefix, oaddr, name, code, comment)
             result += line + "\n"

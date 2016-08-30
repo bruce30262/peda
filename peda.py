@@ -69,7 +69,10 @@ class PEDA(object):
     """
     def __init__(self):
         self.SAVED_COMMANDS = {} # saved GDB user's commands
-
+        self.LAST_REGS = {}
+        self.CUR_REGS = {}
+        self.has_record_regs = False
+        gdb.events.cont.connect(self.update_last_regs)
 
     ####################################
     #   GDB Interaction / Misc Utils   #
@@ -228,6 +231,30 @@ class PEDA(object):
             msg(args)
         return args
 
+    def record_current_regs(self, cur_regs):
+        if not self.has_record_regs:
+            for r, v in cur_regs.items():
+                self.CUR_REGS[r] = v
+            self.has_record_regs = True
+
+    def is_reg_changed(self, reg_name):
+        """
+        Detect if a register's content has changed
+        """
+        if reg_name not in self.LAST_REGS: # first time
+            return True
+        elif self.LAST_REGS[reg_name] != self.CUR_REGS[reg_name]: # is changed
+            return True
+        else: # did not change
+            return False
+            
+    def update_last_regs(self, event):
+        """
+        Update last registers' content
+        """
+        self.has_record_regs = False
+        for r, v in self.CUR_REGS.items():
+            self.LAST_REGS[r] = v
 
     ################################
     #   GDB User-Defined Helpers   #
@@ -4334,7 +4361,8 @@ class PEDACmd(object):
         """
         if not self._is_running():
             return
-
+        
+        peda.record_current_regs(peda.getregs())
         pc = peda.getreg("pc")
         # display register info
         msg("\x1b[H\x1b[J") # clear screen
@@ -5164,16 +5192,18 @@ class PEDACmd(object):
             regs = peda.getregs(" ".join(arg[1:]))
             used_regs=REGISTERS[bits]
             if regname is None:
-                for (ii,r) in enumerate(REGISTERS[bits]):
+                for r in used_regs:
                     if r in regs:
-                        text += green("%s" % r.upper().ljust(3)) + ": "
+                        style = "bold" if peda.is_reg_changed(r) else None
+                        text += green("%s" % r.upper().ljust(3), style) + ": "
                         chain = peda.examine_mem_reference(regs[r])
                         text += format_reference_chain(chain)
                         text += "\n"
 
             else:
                 for (r, v) in sorted(regs.items()):
-                    text += green("%s" % r.upper().ljust(3)) + ": "
+                    style = "bold" if peda.is_reg_changed(r) else None
+                    text += green("%s" % r.upper().ljust(3), style) + ": "
                     chain = peda.examine_mem_reference(v)
                     text += format_reference_chain(chain)
                     text += "\n"
